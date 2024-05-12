@@ -1,60 +1,34 @@
 import java.util.*;
 
-// Класс для представления пары значений
-class Pair<F, S> {
-    private F first; // Первый элемент пары
-    private final S second; // Второй элемент пары
-
-    public Pair(F first, S second) {
-        this.first = first;
-        this.second = second;
-    }
-
-    public F getFirst() {
-        return first;
-    }
-
-    public S getSecond() {
-        return second;
-    }
-
-    public void setFirst(F first) {
-        this.first = first;
-    }
-
-}
-
 public class SecondZ {
     // Метод для распределения очереди посетителей на окна
-    static void distributeQueue(int numWindows, Queue<Pair<Integer, String>> visitors) {
-        // Создаем список пар, представляющий окна, и заполняем его парами (0, пустой список талонов)
-        List<Pair<Integer, List<String>>> windows = new ArrayList<>(numWindows);
+    private static void distributeQueue(int numWindows, Queue<Pair<Integer, String>> visitors) {
+        // Создаем список окон, где каждое окно представлено парой <продолжительность обслуживания, список талонов>
+        List<Pair<Integer, List<String>>> windows = new ArrayList<>();
         for (int i = 0; i < numWindows; i++) {
             windows.add(new Pair<>(0, new ArrayList<>()));
         }
 
-        // Сортируем окна по продолжительности обслуживания (по первому элементу пары)
-        windows.sort(Comparator.comparingInt(Pair::getFirst));
-
-        // Пока очередь посетителей не пуста
+        // Пока есть посетители в очереди
         while (!visitors.isEmpty()) {
-            // Извлекаем текущего посетителя из очереди
-            var currentVisitor = visitors.poll();
+            // Извлекаем следующего посетителя из очереди
+            Pair<Integer, String> currentVisitor = visitors.poll();
 
-            // Находим окно с минимальной продолжительностью обслуживания
-            var minWindow = Collections.min(windows, Comparator.comparingInt(Pair::getFirst));
+            // Ищем окно с наименьшей очередью
+            Pair<Integer, List<String>> minWindow = Collections.min(windows, Comparator.comparingInt(o -> o.first));
 
-            // Добавляем талон текущего посетителя в список талонов окна с минимальной продолжительностью
-            minWindow.getSecond().add(currentVisitor.getSecond());
+            // Добавляем посетителя к выбранному окну
+            assert minWindow != null;
+            minWindow.second.add(currentVisitor.second);
 
-            // Увеличиваем продолжительность обслуживания этого окна на продолжительность текущего посетителя
-            minWindow.setFirst(minWindow.getFirst() + currentVisitor.getFirst());
+            // Увеличиваем продолжительность обслуживания окна на продолжительность посещения посетителя
+            minWindow.first += currentVisitor.first;
         }
 
-        // Выводим информацию о каждом окне и списках талонов
-        for (int i = 0; i < numWindows; ++i) {
-            System.out.print("Окно " + (i + 1) + " (" + windows.get(i).getFirst() + " минут): ");
-            for (var token : windows.get(i).getSecond()) {
+        // Выводим распределение посетителей на окна
+        for (int i = 0; i < numWindows; i++) {
+            System.out.print("Окно " + (i + 1) + " (" + windows.get(i).first + " минут): ");
+            for (String token : windows.get(i).second) {
                 System.out.print(token + ", ");
             }
             System.out.println();
@@ -64,29 +38,60 @@ public class SecondZ {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
-        // Запрос количества окон
         System.out.print("Введите кол-во окон: ");
-        int numWindows = scanner.nextInt();
+        int numWindows;
+        while (true) {
+            try {
+                numWindows = Integer.parseInt(scanner.nextLine());
+                if (numWindows > 0) {
+                    break;
+                } else {
+                    System.out.print("Некорректный ввод. Пожалуйста, введите положительное целое число: ");
+                }
+            } catch (NumberFormatException e) {
+                System.out.print("Некорректный ввод. Пожалуйста, введите положительное целое число: ");
+            }
+        }
 
-        // Создаем очередь посетителей
         Queue<Pair<Integer, String>> visitors = new LinkedList<>();
 
-        // Запрос команд управления системой
         System.out.println("Введите команды (ENQUEUE <продолжительность посещения>, DISTRIBUTE для завершения):");
         while (true) {
             System.out.print(">>> ");
             String command = scanner.next();
-            if (command.equals("ENQUEUE")) { // Если команда - добавление посетителя в очередь
-                int duration = scanner.nextInt(); // Считываем продолжительность посещения
-                String token = "T" + (visitors.size() + 1); // Генерируем номер талона
-                visitors.add(new Pair<>(duration, token)); // Добавляем посетителя в очередь
-                System.out.println(token); // Выводим номер талона
-            } else if (command.equals("DISTRIBUTE")) { // Если команда - распределение посетителей по окнам
-                distributeQueue(numWindows, visitors); // Вызываем метод распределения посетителей
-                break; // Завершаем цикл
-            } else { // Если введена неверная команда
-                System.out.println("Invalid command"); // Выводим сообщение об ошибке
+            if (command.equals("ENQUEUE")) {
+                int duration;
+                try {
+                    duration = Integer.parseInt(scanner.next());
+                    if (duration <= 0) {
+                        System.out.print("Некорректная продолжительность посещения. Пожалуйста, введите положительное целое число: ");
+                        continue;
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.print("Некорректная продолжительность посещения. Пожалуйста, введите положительное целое число: ");
+                    continue;
+                }
+                String token = "T" + visitors.size() + 1; // Генерация уникального талона
+                visitors.add(new Pair<>(duration, token)); // Добавление посетителя в очередь
+                System.out.println(token); // Вывод номера талона
+            } else if (command.equals("DISTRIBUTE")) {
+                distributeQueue(numWindows, visitors); // Вызов метода для распределения посетителей по окнам
+                break;
+            } else {
+                System.out.println("Некорректный синтаксис"); // Вывод сообщения об ошибке
             }
+        }
+
+        scanner.close();
+    }
+
+    static class Pair<U, V> {
+        public U first;
+        public final V second;
+
+        public Pair(U first, V second) {
+            this.first = first;
+            this.second = second;
         }
     }
 }

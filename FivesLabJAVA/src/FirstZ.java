@@ -1,3 +1,4 @@
+/*
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -186,6 +187,201 @@ public class FirstZ {
             }
         }
 
+        scanner.close();
+    }
+}
+*/
+import java.util.*;
+
+class Cell {
+    String address;
+    Map<String, Integer> products;
+
+    Cell(String addr) {
+        address = addr;
+        products = new HashMap<>();
+    }
+
+    void addProduct(String productName, int quantity) {
+        if (products.containsKey(productName)) {
+            if (products.get(productName) + quantity <= 10 && quantity > 0) {
+                products.put(productName, products.get(productName) + quantity);
+                System.out.println("Добавлено " + quantity + " единиц товара " + productName + " в ячейку " + address + ".");
+            } else if (quantity <= 0) {
+                System.out.println("Нельзя добавить неположительное количество товара (" + productName + ") в ячейку " + address + ".");
+            } else {
+                System.out.println("Превышено максимальное количество товара (" + productName + ") в ячейке " + address + ".");
+            }
+        } else {
+            int totalQuantity = 0;
+            for (int value : products.values()) {
+                totalQuantity += value;
+            }
+            if (totalQuantity + quantity <= 10 && totalQuantity + quantity > 0) {
+                products.put(productName, quantity);
+                System.out.println("Добавлено " + quantity + " единиц товара " + productName + " в ячейку " + address + ".");
+            } else if (totalQuantity + quantity <= 0) {
+                System.out.println("Нельзя добавить неположительное количество товара (" + productName + ") в ячейку " + address + ".");
+            } else {
+                System.out.println("Превышено максимальное количество товара (" + productName + ") в ячейке " + address + ".");
+            }
+        }
+    }
+
+    void removeProduct(String productName, int quantity) {
+        if (products.containsKey(productName) && products.get(productName) >= quantity && quantity >= 0) {
+            products.put(productName, products.get(productName) - quantity);
+            if (products.get(productName) == 0) {
+                products.remove(productName);
+            }
+            System.out.println("Убрано " + quantity + " единиц товара " + productName + " из ячейки " + address + ".");
+        } else {
+            System.out.println("Невозможно убрать " + quantity + " единиц товара " + productName + " из ячейки " + address + ".");
+        }
+    }
+
+    void showContents() {
+        if (!products.isEmpty()) {
+            System.out.println("Содержимое ячейки " + address + ":");
+            for (Map.Entry<String, Integer> entry : products.entrySet()) {
+                System.out.println("- " + entry.getKey() + ": " + entry.getValue() + " шт.");
+            }
+        }
+    }
+}
+
+class Warehouse {
+    int zones;
+    int shelvesPerZone;
+    int sectionsPerShelf;
+    int shelvesCapacity;
+    int totalCapacity;
+    Map<String, Cell> cells;
+
+    Warehouse(int z, int spz, int sps, int sc) {
+        zones = z;
+        shelvesPerZone = spz;
+        sectionsPerShelf = sps;
+        shelvesCapacity = sc;
+        totalCapacity = zones * shelvesPerZone * sectionsPerShelf * shelvesCapacity;
+        cells = new HashMap<>();
+        for (int zone = 1; zone <= zones; ++zone) {
+            for (int shelf = 1; shelf <= shelvesPerZone; ++shelf) {
+                for (int section = 1; section <= sectionsPerShelf; ++section) {
+                    for (int shelfPosition = 1; shelfPosition <= shelvesCapacity; ++shelfPosition) {
+                        String address = "" + (char)('A' + zone - 1) + shelf + section + shelfPosition;
+                        cells.put(address, new Cell(address));
+                    }
+                }
+            }
+        }
+    }
+
+    void addProduct(String productName, int quantity, String cellAddress) {
+        Cell cell = cells.get(cellAddress);
+        if (cell == null) {
+            System.out.println("Ячейка не существует.");
+            return;
+        }
+        cell.addProduct(productName, quantity);
+    }
+
+    void removeProduct(String productName, int quantity, String cellAddress) {
+        Cell cell = cells.get(cellAddress);
+        if (cell == null) {
+            System.out.println("Ячейка не существует.");
+            return;
+        }
+        cell.removeProduct(productName, quantity);
+    }
+
+    void getInfo() {
+        List<Cell> filledCells = new ArrayList<>();
+        List<String> emptyCells = new ArrayList<>();
+        int totalFilledCapacity = 0;
+        for (Cell cell : cells.values()) {
+            if (!cell.products.isEmpty()) {
+                filledCells.add(cell);
+                totalFilledCapacity += cell.products.size();
+            } else {
+                emptyCells.add(cell.address);
+            }
+        }
+        double filledPercentage = ((double) totalFilledCapacity / totalCapacity) * 100.0;
+        System.out.println("Склад заполнен на " + filledPercentage + "%.");
+        System.out.println("Содержимое заполненных ячеек:");
+        for (Cell cell : filledCells) {
+            cell.showContents();
+        }
+    }
+
+    void showEmptyCells() {
+        System.out.println("Пустые ячейки:");
+        for (Cell cell : cells.values()) {
+            if (cell.products.isEmpty()) {
+                System.out.println(cell.address);
+            }
+        }
+    }
+}
+
+public class FirstZ {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        Warehouse warehouse = new Warehouse(2, 19, 4, 8);
+
+        System.out.println("Для добавления товара в ячейку используйте команду ADD <наименование товара> <количество> <адрес ячейки>.");
+        System.out.println("Пример: ADD Апельсины 8 А1739");
+        System.out.println("Для удаления товара из ячейки используйте команду REMOVE <наименование товара> <количество> <адрес ячейки>.");
+        System.out.println("Пример: REMOVE Апельсины 3 А1739");
+        System.out.println("Для получения информации о состоянии заполненных ячеек склада используйте команду INFO.");
+        System.out.println("Для получения списка пустых ячеек используйте команду EMPTY.");
+        System.out.println("Команда HELP - выводит инструкцию по вводу.");
+        System.out.println("Команда EXIT - завершает программу.");
+
+        while (true) {
+            System.out.print(">>> ");
+            String command = scanner.nextLine();
+
+            if (command.equals("EXIT")) {
+                break;
+            } else if (command.equals("HELP")) {
+                System.out.println("Для добавления товара в ячейку используйте команду ADD <наименование товара> <количество> <адрес ячейки>.");
+                System.out.println("Пример: ADD Апельсины 8 А1739");
+                System.out.println("Для удаления товара из ячейки используйте команду REMOVE <наименование товара> <количество> <адрес ячейки>.");
+                System.out.println("Пример: REMOVE Апельсины 3 А1739");
+                System.out.println("Для получения информации о состоянии заполненных ячеек склада используйте команду INFO.");
+                System.out.println("Для получения списка пустых ячеек используйте команду EMPTY.");
+                System.out.println("Команда HELP - выводит инструкцию по вводу.");
+                System.out.println("Команда EXIT - завершает программу.");
+            } else if (command.startsWith("ADD")) {
+                String[] parts = command.split(" ");
+                if (parts.length == 4) {
+                    String productName = parts[1];
+                    int quantity = Integer.parseInt(parts[2]);
+                    String cellAddress = parts[3];
+                    warehouse.addProduct(productName, quantity, cellAddress);
+                } else {
+                    System.out.println("Неверный формат команды.");
+                }
+            } else if (command.startsWith("REMOVE")) {
+                String[] parts = command.split(" ");
+                if (parts.length == 4) {
+                    String productName = parts[1];
+                    int quantity = Integer.parseInt(parts[2]);
+                    String cellAddress = parts[3];
+                    warehouse.removeProduct(productName, quantity, cellAddress);
+                } else {
+                    System.out.println("Неверный формат команды.");
+                }
+            } else if (command.equals("INFO")) {
+                warehouse.getInfo();
+            } else if (command.equals("EMPTY")) {
+                warehouse.showEmptyCells();
+            } else {
+                System.out.println("Неизвестная команда.");
+            }
+        }
         scanner.close();
     }
 }

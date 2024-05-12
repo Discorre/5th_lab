@@ -1,4 +1,7 @@
-﻿  FourthZ.cpp
-  ThierdZ.cpp
+﻿  FirstZ.cpp
+C:\Users\egori\projectes\FivesLab\FirstZ.cpp(128,59): warning C4267: +=: преобразование из "size_t" в "int"; возможна потеря данных
+  FourthZ.cpp
+  SecondZ.cpp
+  TransitSystem.cpp
   Создание кода...
   FivesLab.vcxproj -> C:\Users\egori\projectes\FivesLab\x64\Debug\FivesLab.exe

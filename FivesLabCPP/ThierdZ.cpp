@@ -1,10 +1,10 @@
 //#include "TransitSystem.h" // Включение заголовочного файла TransitSystem.h для использования класса TransitSystem
-//#include <Windows.h> // Включение заголовочного файла Windows.h для использования функций для работы с консолью
+//#include <Windows.h>
 //
 //int main() {
-//    setlocale(LC_ALL, "ru"); // Установка локали для корректного отображения текста на кириллице
-//    SetConsoleCP(1251); // Установка кодовой страницы для ввода в консоль (1251 - кириллическая)
-//    SetConsoleOutputCP(1251); // Установка кодовой страницы для вывода в консоль (1251 - кириллическая)
+//    setlocale(LC_ALL, "ru");
+//    SetConsoleCP(1251);
+//    SetConsoleOutputCP(1251);
 //
 //    TransitSystem transitSystem; // Создание объекта класса TransitSystem
 //    transitSystem.executeCommands(); // Вызов метода для выполнения команд
